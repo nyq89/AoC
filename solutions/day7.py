@@ -1,41 +1,39 @@
+import operator
 import numpy as np
 
-operations = {}
+#Day 7
+ops = { None	:	lambda x : x,
+		"NOT"	:	operator.invert,
+		"AND"	:	operator.and_,
+		"OR"	:	operator.or_,
+		"RSHIFT":	operator.rshift,
+		"LSHIFT":	operator.lshift }
+
+gates = {}
+
+class Gate:
+	def __init__(self, op=None, *wires):
+		self.op = op
+		self.inw = [int(x) if x.isdigit() else x for x in wires]
+		self.out = 0
+
+	def cal_out(self):
+		if not self.out:
+			self.out = ops[self.op](*[np.uint16(x) if isinstance(x, int) else gates[x].cal_out() for x in self.inw])
+		return self.out
 
 def circuets():
 	f = open('inputs/inputd71.txt','r')
-	global operations
 	for line in f:
-		line = line.strip()
 		op, out = line.split("->")
-		operations[out.strip()] = op
-	value = calc('a')
+		op = op.split()
+		out = out.strip()
+		if len(op) == 1:
+			gates[out] = Gate(None, op[0])
+		else:
+			gates[out] = Gate(op.pop(-2), *op)
+
+	value = gates['a'].cal_out()
 	return value
 
-def calc(key):
-	global operations
-	print key
-	try:
-		return int(key)
-	except ValueError:
-		pass
-
-	op = operations[key].split(" ")
-	if "NOT" in op:
- 		return ~calc(op[1])
-   	elif "AND" in op:
-		return calc(op[0]) & calc(op[2])
-	elif "OR" in op:
-		return calc(op[0]) | calc(op[2])
-	elif "LSHIFT" in op:
-		return calc(op[0]) << calc(op[2])
-	elif "RSHIFT" in op:
-		return calc(op[0]) >> calc(op[2])
-	else:
-		return calc(op[0])
 	
-
-
-		
-		
-
